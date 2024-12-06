@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  name         String
+  email        String        @unique
+  password     String
+  image        String?
+  updatedAt    DateTime      @updatedAt
+  createdAt    DateTime      @default(now())
+  transactions Transaction[]
+  debts        Debt[]
+
+  @@map("users")
+}
+
+model Debt {
+  id      Int        @id @default(autoincrement())
+  name    String // Nome ou descrição da dívida
+  type    DebtType // Tipo de dívida (enum definido abaixo)
+  amount  Int // Valor da dívida
+  dueDate DateTime // Data de vencimento
+  status  DebtStatus @default(UNPAID) // Status da dívida (paga ou não paga)
+  userId  Int // Relacionamento com usuário
+  user    User       @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("debts")
+}
+
+enum DebtType {
+  CREDIT_CARD
+  BOLETO
+  PERSONAL_LOAN
+  OTHER
+}
+
+enum DebtStatus {
+  PAID
+  UNPAID
+}
+
+model Transaction {
+  id          Int             @id @default(autoincrement())
+  type        TransactionType
+  name        String
+  description String?
+  amount      Int
+  cretedAt    DateTime        @default(now())
+  category    String?
+  userId      Int
+  user        User            @relation(fields: [userId], references: [id])
+  payMethod   String?
+
+  @@map("trasactions")
+}
+
+enum TransactionType {
+  expenses
+  incomes
+}
